@@ -1,0 +1,15 @@
+{
+  "name": "icaljita",
+  "version": "0.0.1",
+  "description": "RFC 2445 iCal implementation",
+  "devDependencies": {
+    "jasmine-node": "1.0.x"
+  },
+  "engine": {
+    "node": ">=0.8"
+  },
+  "scripts": {
+    "pretest": "coffee -cl -o lib src",
+    "test": "jasmine-node --coffee --junitreport spec"
+  }
+}
