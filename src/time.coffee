@@ -90,32 +90,25 @@ returns an ICAL string representing the given date or date-time value.
 @param {number} dateValue
 @return {string} ical
 ###
-###
-time.toIcal = (dateValue) ->
-  d = time.day(dateValue),
-      m = time.month(dateValue),
-      y = time.year(dateValue)
 
-  ys
-  if (y >= 0) {
-    ys = '' + y
-    if (ys.length < 4) { ys = '0000'.substring(0, 4 - ys.length) + ys }
-  } else {
-    ys = '' + (-y)
-    if (ys.length < 4) { ys = '0000'.substring(0, 4 - ys.length) + ys }
-    ys = '-' + ys
-  }
+time.toIcal = (->
+  padZero = (n) -> n < 10 and '0'+n or n.toString()
+  
+  (dateValue) ->
+    year = (
+      (time.year(dateValue) < 0 and '-' or '') +
+      ('0000' + Math.abs(time.year(dateValue)))[-4..-1]
+    )
+    month = padZero time.month(dateValue)
+    day = padZero time.day(dateValue)
 
-  if (!time.isDate(dateValue)) {
-    hr = time.hour(dateValue)
-    min = time.minute(dateValue)
-    return (((ys + (m < 10 ? '0' + m : m)) + (d < 10 ? '0' + d : d)) + 'T' +
-            (hr < 10 ? '0' + hr : hr)) + (min < 10 ? '0' + min : min) + '00'
-  } else {
-    return (ys + (m < 10 ? '0' + m : m)) + (d < 10 ? '0' + d : d)
-  }
-
-###
+    unless time.isDate(dateValue)
+      hour = padZero time.hour(dateValue)
+      minute = padZero time.minute(dateValue)
+      return [year, month, day, 'T', hour, minute, '00'].join ''
+    else
+      return [year, month, day].join ''
+)()
 
 ###
 Produces a date assuming normalized inputs.
@@ -192,12 +185,12 @@ produces a date-time given normalized inputs.
 @param {number} minute
 @return {number} a date
 ###
-###
 time.dateTime = (year, month, day, hour, minute) ->
-  return ((((((year + 0x800) << 4) | month) << 5) | day) << 11)
-      | (1 + hour * 60 + minute)
-
-###
+  (
+    (((((year + 0x800) << 4) | month) << 5) | day) << 11
+  ) | (
+    1 + hour * 60 + minute
+  )
 
 ###
 like {@link time#dateTime} but forces values to be in the appropriate ranges.
@@ -217,21 +210,17 @@ even if d falls in November or December.</p>
 @param {number} minute
 @return {number} a date
 ###
-###
 time.normalizedDateTime = (year, month, day, hour, minute) ->
   minutes = hour * 60 + minute
-  if (minutes < 0) {
+  if minutes < 0
     nDays = (((24 * 60 - 1) - minutes) / (24 * 60)) | 0
     minutes += nDays * (24 * 60)
     day -= nDays
-  } else if (minutes >= (24 * 60)) {
+  else if minutes >= (24 * 60)
     nDays = (minutes / (24 * 60)) | 0
     minutes -= nDays * (24 * 60)
     day += nDays
-  }
   return time.normalizedDate(year, month, day) | (minutes + 1)
-
-###
 
 ###
 produces a duration from a number of units.
@@ -252,11 +241,7 @@ the year in [0,4097]
 @param {number} dateValue
 @return {number}
 ###
-###
-time.year = (dateValue) ->
-  return (dateValue >> 20) + 2048
-
-###
+time.year = (dateValue) -> (dateValue >> 20) + 2048
 
 ###
 The input date value but with a different year.
@@ -264,22 +249,17 @@ The input date value but with a different year.
 @param {number} year
 @return {number}
 ###
-###
 time.withYear = (dateValue, year) ->
-  return (dateValue & 0xfffff) | ((year - 2048) << 20)
+  (dateValue & 0xfffff) | ((year - 2048) << 20)
 
-###
 
 ###
 the month in [1,12]
 @param {number} dateValue
 @return {number}
 ###
-###
 time.month = (dateValue) ->
-  return ((dateValue >> 16) & 0xf)
-
-###
+  (dateValue >> 16) & 0xf
 
 ###
 The input date value but with a different month.
@@ -287,11 +267,9 @@ The input date value but with a different month.
 @param {number} month
 @return {number}
 ###
-###
 time.withMonth = (dateValue, month) ->
-  return (dateValue & 0xfff0ffff) | ((month & 0xf) << 16)
+  (dateValue & 0xfff0ffff) | ((month & 0xf) << 16)
 
-###
 
 ###
 the day of the month in [1,31]
@@ -340,7 +318,7 @@ the minute portion in [0,59]
 @return {number}
 ###
 time.minute = (dateTime) ->
-  return (((dateTime & 0x7ff) - 1) % 60) | 0
+  (((dateTime & 0x7ff) - 1) % 60) | 0
 
 
 ###
@@ -438,27 +416,22 @@ This allows efficient iteration over days.
 @param {number} dateValue
 @return {number}
 ###
-###
 time.nextDate = (dateValue) ->
-  if ((dateValue & 0xf800) < (28 << 11)) {
-    // simple case works (12*27/365.25) 88.7% of the time
+  if (dateValue & 0xf800) < (28 << 11)
+    # simple case works (12*27/365.25) 88.7% of the time
     return dateValue + (1 << 11)
-  }
-  day = time.day(dateValue),
-      month = time.month(dateValue),
-      year = time.year(dateValue)
-  if (day < time.daysInMonth(year, month)) {
-    return dateValue + (1 << 11) // reached 8% of the time
-  } else {
-    // final (12/365.25) 3.3% may step to next year
-    if (++month > 12) {
-      month = 1
-      if (++year > 0xfff) { throw new Error('year overflow') }
-    }
-    return time.date(year, month, 1) | (dateValue & 0x7ff)
-  }
-###
 
+  day = time.day(dateValue)
+  month = time.month(dateValue)
+  year = time.year(dateValue)
+  if day < time.daysInMonth(year, month)
+    return dateValue + (1 << 11) # reached 8% of the time
+  else
+    # final (12/365.25) 3.3% may step to next year
+    if ++month > 12
+      month = 1
+      if (++year > 0xfff) then throw new Error('year overflow')
+    return time.date(year, month, 1) | (dateValue & 0x7ff)
 
 ###
 @param {number} year
@@ -488,28 +461,25 @@ time.daysInYear = (year) ->
 ### 
 The index (zero-indexed) of the day in the year
 ###
-###
 time.dayOfYear = (->
-  // OPT-NOTE: see if we can optimize this out when time.dayOfYear isn't used.
-  daysBeforeFirstOfMonth  // In a non leap-year.
-  daysBeforeFirstOfMonth = [undefined]
+  # OPT-NOTE: see if we can optimize this out when time.dayOfYear isn't used.
+  daysBeforeFirstOfMonth = [undefined] # In a non leap-year.
   count = 0
-  for (month = 0; ++month <= 12;) {
+  for month in [1..12]
     daysBeforeFirstOfMonth[month] = count
     count += time.daysInMonth(1999, month)
-  }
 
   return (dateValue) ->
     day = time.day(dateValue)
     month = time.month(dateValue)
 
     doy = day + daysBeforeFirstOfMonth[month]
-    // Subtract one when not a leap year since day is one-indexed and
-    // day-of-year is zero-indexed.
-    return doy - (month > 2 && time.isLeapYear(time.year(dateValue)) ? 0 : 1)
-  }
-})()
-###
+    # Subtract one when not a leap year since day is one-indexed and
+    # day-of-year is zero-indexed.
+    unless month > 2 && time.isLeapYear(time.year(dateValue))
+      doy -= 1
+    return doy
+)()
 
 ###
 the number of days between two dates, which will be > 0 if the first is
@@ -518,18 +488,14 @@ later.  This ignores any time-of-day portion.
 @param {number} dateValue2
 @return {number} days
 ###
-###
 time.daysBetween = (dateValue1, dateValue2) ->
-  if ((dateValue1 & 0xffff0000) === (dateValue2 & 0xffff0000)) {
-    // Optimization -- if in same month just subtract day of month.
-    // In practice, checks in the same month far outnumber checks across
-    // months.
-    return ((dateValue1 & 0x0000f800) -
-            (dateValue2 & 0x0000f800)) >> 11
-  }
-  return time.fixedFromGregorian(dateValue1)
-      - time.fixedFromGregorian(dateValue2)
-###
+  if (dateValue1 & 0xffff0000) is (dateValue2 & 0xffff0000)
+    # Optimization -- if in same month just subtract day of month.
+    # In practice, checks in the same month far outnumber checks across
+    # months.
+    ((dateValue1 & 0x0000f800) - (dateValue2 & 0x0000f800)) >> 11
+
+  time.fixedFromGregorian(dateValue1) - time.fixedFromGregorian(dateValue2)
 
 ###
 time.durationBetween = (dateValue1, dateValue2) ->
@@ -558,19 +524,23 @@ nDays after the given date or date time.
 @return {number} a normalized date if dateValue has not time, or a normalized
     date time otherwise.
 ###
-###
 time.plusDays = (dateValue, nDays) ->
-  if (time.isDate(dateValue)) {
-    return time.normalizedDate(time.year(dateValue), time.month(dateValue),
-                               time.day(dateValue) + nDays)
-  } else {
-    return time.normalizedDateTime(
-        time.year(dateValue), time.month(dateValue),
-        time.day(dateValue) + nDays,
-        time.hour(dateValue), time.minute(dateValue))
-  }
+  if time.isDate(dateValue)
+    time.normalizedDate(
+      time.year(dateValue)
+      time.month(dateValue)
+      time.day(dateValue) + nDays
+    )
+  else
+    time.normalizedDateTime(
+      time.year(dateValue)
+      time.month(dateValue)
+      time.day(dateValue) + nDays,
+      time.hour(dateValue)
+      time.minute(dateValue)
+    )
 
-
+###
 time.plusSeconds = (dateTime, nSeconds) ->
   return time.normalizedDateTime(
         time.year(dateTime), time.month(dateTime), time.day(dateTime),
@@ -600,20 +570,18 @@ See Calendrical Calculations, Reingold and Dershowitz.
 @param {number} dateValue
 @param {number} of days since an epoch.
 ###
-###
 time.fixedFromGregorian = (dateValue) ->
-  year = time.year(dateValue),
-      month = time.month(dateValue),
-      day = time.day(dateValue)
+  year = time.year(dateValue)
+  month = time.month(dateValue)
+  day = time.day(dateValue)
   yearM1 = year - 1
   return 365 * yearM1 +
-      ((yearM1 / 4) | 0) -
-      ((yearM1 / 100) | 0) +
-      ((yearM1 / 400) | 0) +
-      (((367 * month - 362) / 12) | 0) +
-      (month <= 2 ? 0 : (time.isLeapYear(year) ? -1 : -2)) +
-      day
-###
+    ((yearM1 / 4) | 0) -
+    ((yearM1 / 100) | 0) +
+    ((yearM1 / 400) | 0) +
+    (((367 * month - 362) / 12) | 0) +
+    (if month <= 2 then 0 else (if time.isLeapYear(year) then -1 else -2)) +
+    day
 
 
 ###
