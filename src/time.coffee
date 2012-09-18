@@ -16,7 +16,7 @@ allow efficient access to fields.  We also ignore seconds and smaller units.
 
 @author mikesamuel@gmail.com
 @author adam@hmlad.com 
-  - Node/Coffeescript port
+- Node/Coffeescript port
 ###
 
 time = module.exports
