@@ -24,19 +24,17 @@ A condition has the form:<pre>
 module.exports = conditions =
   countCondition: (count) ->
     i = count
-    return
-      test: (dateValueUtc) -> --i >= 0
-      reset: -> i = count
+
+    test: (dateValueUtc) -> --i >= 0
+    reset: -> i = count
 
 
   untilCondition: (untilDateValueUtc) ->
-    return
-      test: (dateValueUtc) -> dateValueUtc <= untilDateValueUtc
-      reset: ->
+    test: (dateValueUtc) -> dateValueUtc <= untilDateValueUtc
+    reset: ->
 
 
   unboundedCondition: ->
-    return
-      test: -> true
-      reset: ->
+    test: -> true
+    reset: ->
 

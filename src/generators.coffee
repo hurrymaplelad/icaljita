@@ -1,4 +1,5 @@
 time = require './time'
+time_util = require './time_util'
 
 ###
 @fileoverview
@@ -136,23 +137,28 @@ constructs a generator that generates every day in the current month that
 is an integer multiple of interval days from dtStart.
 ###
 generators.serialDayGenerator = (interval, dtStart) ->
+  year = undefined
+  month = undefined
+  date = undefined
+  nDays = undefined
   
   ###
   ndays in the last month encountered
   ###
   reset = ->
-    
     # Step back one interval
     dtStartMinus1 = time.plusDays(dtStart, -interval)
     year = time.year(dtStartMinus1)
     month = time.month(dtStartMinus1)
     date = time.day(dtStartMinus1)
     nDays = time.daysInMonth(year, month)
+
   generate = (builder) ->
     ndate = undefined
     byear = time.year(builder[0])
     bmonth = time.month(builder[0])
-    if year is byear and month is bmonth
+
+    if (year is byear) and (month is bmonth)
       ndate = date + interval
       return false  if ndate > nDays
     else
@@ -177,10 +183,7 @@ generators.serialDayGenerator = (interval, dtStart) ->
     date = ndate
     builder[0] = time.withDay(builder[0], date)
     true
-  year = undefined
-  month = undefined
-  date = undefined
-  nDays = undefined
+
   return {generate, reset}
 
 
@@ -192,7 +195,11 @@ for each year.
 @param {number} dtStart date value
 ###
 generators.byMonthGenerator = (months, dtStart) ->
+  months = time_util.uniquify(months)
+  year = undefined
   # index into months.
+  i = undefined
+
   reset = ->
     year = time.year(dtStart)
     i = 0
@@ -204,9 +211,6 @@ generators.byMonthGenerator = (months, dtStart) ->
     return false  if i >= months.length
     builder[0] = time.withMonth(builder[0], months[i++])
     true
-  months = time_util.uniquify(months)
-  i = undefined
-  year = undefined
   return {generate, reset}
 
 
@@ -219,15 +223,21 @@ for each month seen.
 @param {number} dtStart date value
 ###
 generators.byMonthDayGenerator = (dates, dtStart) ->
+  dates = time_util.uniquify(dates)
+  year = undefined
+  month = undefined
   
   ###
   list of absolute generated dates for the current month, guaranteed to
   be in [1,time.daysInMonth(month)]
   ###
+  posDates = undefined
   
   ###
   index of next date to return
   ###
+  i = undefined
+
   reset = ->
     year = time.year(dtStart)
     month = time.month(dtStart)
@@ -255,11 +265,7 @@ generators.byMonthDayGenerator = (dates, dtStart) ->
     return false  if i >= posDates.length
     builder[0] = time.withDay(builder[0], posDates[i++])
     true
-  dates = time_util.uniquify(dates)
-  year = undefined
-  month = undefined
-  posDates = undefined
-  i = undefined
+
   return {generate, reset}
 
 

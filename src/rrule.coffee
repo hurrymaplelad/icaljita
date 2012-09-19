@@ -4,6 +4,7 @@ instanceGenerators = require './instanceGenerators'
 conditions = require './conditions'
 predicates = require './predicates'
 filters = require './filters'
+WeekDay = require './weekday'
 
 
 ###
@@ -71,9 +72,10 @@ WE -> Every Wednesday of the month or year.
 WeekDayNum = (ical) ->
   m = ical.match(/^(-?\d+)?(MO|TU|WE|TH|FR|SA|SU)$/i)
   throw new Error("Invalid weekday number: " + ical)  unless m
-  return
+  return {
     wday: WeekDay[m[2].toUpperCase()]
     num: Number(m[1]) or 0
+  }
 
 
 ###
@@ -185,9 +187,9 @@ createRecurrenceIterator = (rule, dtStart, timezone) ->
       else
         dayGenerator = generators.serialDayGenerator(interval * 7, dtStart)
       filterList.push filters.byMonthDayFilter(byMonthDay)  if 0 isnt byMonthDay.length
-    when Frequency.YEARLY
-      if 0 isnt byYearDay.length
-        
+       
+    when Frequency.MONTHLY, Frequency.YEARLY
+      if freq is Frequency.YEARLY and byYearDay.length isnt 0
         # The BYYEARDAY rule part specifies a COMMA separated list of days of
         # the year. Valid values are 1 to 366 or -366 to -1. For example, -1
         # represents the last day of the year (December 31st) and -306
@@ -197,19 +199,15 @@ createRecurrenceIterator = (rule, dtStart, timezone) ->
         filterList.push filters.byMonthDayFilter(byMonthDay)  if 0 isnt byMonthDay.length
         
         # TODO(mikesamuel): filter byWeekNo and write unit tests
-        break
-    
-    # fallthru to monthly cases
-    when Frequency.MONTHLY
-      if 0 isnt byMonthDay.length
-        
+
+      else if 0 isnt byMonthDay.length
         # The BYMONTHDAY rule part specifies a COMMA separated list of days
         # of the month. Valid values are 1 to 31 or -31 to -1. For example,
         # -10 represents the tenth to the last day of the month.
         dayGenerator = generators.byMonthDayGenerator(byMonthDay, dtStart)
         filterList.push filters.byDayFilter(byDay, Frequency.YEARLY is freq, wkst)  if 0 isnt byDay.length
       
-      # TODO(mikesamuel): filter byWeekNo and write unit tests
+        # TODO(mikesamuel): filter byWeekNo and write unit tests
       else if 0 isnt byWeekNo.length and Frequency.YEARLY is freq
         
         # The BYWEEKNO rule part specifies a COMMA separated list of ordinals
@@ -276,8 +274,7 @@ createRecurrenceIterator = (rule, dtStart, timezone) ->
   instanceGenerator = undefined
   if bySetPos.length
     switch freq
-      when Frequency.WEEKLY, Frequency.MONTHLY
-    , Frequency.YEARLY
+      when Frequency.WEEKLY, Frequency.MONTHLY, Frequency.YEARLY
         instanceGenerator = instanceGenerators.bySetPosInstanceGenerator(bySetPos, freq, wkst, filter, yearGenerator, monthGenerator, dayGenerator)
       else
         
@@ -332,6 +329,7 @@ rruleIteratorImpl = (dtStart, timezone, condition, filter, instanceGenerator, ye
   a date value that has been computed but not yet yielded to the user.
   @type number?
   ###
+  pendingUtc = undefined
   
   ###
   a date value used to build successive results.
@@ -339,16 +337,20 @@ rruleIteratorImpl = (dtStart, timezone, condition, filter, instanceGenerator, ye
   Different periods are successively inserted into it.
   @type number
   ###
+  currentDate = undefined
   
   ###
   true iff the recurrence has been exhausted.
   @type boolean
   ###
+  done = undefined
   
   ###
   A box used to shuttle the currentDate to generators for modification.
   @type Array.<number>
   ###
+  builder = [null]
+
   reset = ->
     condition.reset()
     yearGenerator.reset()
@@ -445,7 +447,8 @@ rruleIteratorImpl = (dtStart, timezone, condition, filter, instanceGenerator, ye
           else if dUtc >= dateUtc
             pendingUtc = dUtc
             break
-    catch ex # Year generator has done too many cycles without result.
+    catch ex
+      # Year generator has done too many cycles without result.
       # Can happen for rules like FREQ=YEARLY;INTERVAL=4;BYMONTHDAY=29 when
       # dtStart is 1 Feb 2001.
       if ex is generators.STOP_ITERATION
@@ -475,6 +478,7 @@ rruleIteratorImpl = (dtStart, timezone, condition, filter, instanceGenerator, ye
   The local time is guaranteed to be monotonic, but because of daylight
   savings shifts, the time in UTC may not be.
   ###
+  lastUtc = time.MIN_DATE_VALUE
   
   ###
   @return {number} a date value in UTC.
@@ -497,17 +501,13 @@ rruleIteratorImpl = (dtStart, timezone, condition, filter, instanceGenerator, ye
       # Year generator has done too many cycles without result.
       return null  if ex is generators.STOP_ITERATION
       throw ex
-  pendingUtc = undefined
-  currentDate = undefined
-  done = undefined
-  builder = [null]
-  lastUtc = time.MIN_DATE_VALUE
   reset()
-  return
-    reset: reset
-    next: next
-    hasNext: hasNext
-    advanceTo: advanceTo
+  return {
+    reset
+    next
+    hasNext
+    advanceTo
+  }
 
 rrule.createRecurrenceIterator = createRecurrenceIterator
 rrule.Frequency = Frequency
