@@ -540,12 +540,14 @@ time.plusDays = (dateValue, nDays) ->
       time.minute(dateValue)
     )
 
-###
 time.plusSeconds = (dateTime, nSeconds) ->
-  return time.normalizedDateTime(
-        time.year(dateTime), time.month(dateTime), time.day(dateTime),
-        time.hour(dateTime), time.minute(dateTime) + ((nSeconds / 60) | 0))
-###
+  time.normalizedDateTime(
+    time.year(dateTime)
+    time.month(dateTime)
+    time.day(dateTime)
+    time.hour(dateTime)
+    time.minute(dateTime) + ((nSeconds / 60) | 0)
+  )
 
 ###
 Adds a duration as parsed by {@code time.parseDuration}.

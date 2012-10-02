@@ -370,23 +370,30 @@ in one of the given weeks of the year.
 @param {number} dtStart a date value.
 ###
 generators.byWeekNoGenerator = (weekNos, wkst, dtStart) ->
-  
+  year = undefined
+  month = undefined
+
   ###
   number of weeks in the last year seen
   ###
-  
+  weeksInYear = undefined
+
   ###
   dates generated anew for each month seen
   ###
-  
+  dates = undefined
+
   ###
   index into dates
   ###
-  
+  i = undefined
+
   ###
   day of the year of the start of week 1 of the current year.
   Since week 1 may start on the previous year, this may be negative.
   ###
+  doyOfStartOfWeek1 = undefined
+
   reset = ->
     year = time.year(dtStart)
     month = time.month(dtStart)
@@ -445,6 +452,7 @@ generators.byWeekNoGenerator = (weekNos, wkst, dtStart) ->
     for k of udates
       dates.push Number(k)
     dates.sort time_util.numericComparator
+
   generate = (builder) ->
     byear = time.year(builder[0])
     bmonth = time.month(builder[0])
@@ -462,12 +470,7 @@ generators.byWeekNoGenerator = (weekNos, wkst, dtStart) ->
     builder[0] = time.withDay(builder[0], dates[i++])
     true
   weekNos = time_util.uniquify(weekNos)
-  year = undefined
-  month = undefined
-  weeksInYear = undefined
-  dates = undefined
-  i = undefined
-  doyOfStartOfWeek1 = undefined
+
   return {generate, reset}
 
 
@@ -479,15 +482,22 @@ fall on one of the given days of the year.
 @param {number} dtStart a date value.
 ###
 generators.byYearDayGenerator = (yearDays, dtStart) ->
+  year = undefined
+  month = undefined
+
   # Absolute dates in the current month.
+  dates = undefined
+
   # Index into dates.
+  i = undefined
+
   reset = ->
     year = time.year(dtStart)
     month = time.month(dtStart)
     i = 0
     checkMonth()
+
   checkMonth = ->
-    
     # Now, calculate the first week of the month.
     doyOfMonth1 = time.dayOfYear(time.date(year, month, 1))
     nDays = time.daysInMonth(year, month)
@@ -517,8 +527,5 @@ generators.byYearDayGenerator = (yearDays, dtStart) ->
     builder[0] = time.withDay(builder[0], dates[i++])
     true
   yearDays = time_util.uniquify(yearDays)
-  year = undefined
-  month = undefined
-  dates = undefined
-  i = undefined
+
   return {generate, reset}

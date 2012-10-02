@@ -1,3 +1,5 @@
+time = require './time'
+
 ###
 @fileoverview
 Complements to generators (see generators.js) that filter out dates which
