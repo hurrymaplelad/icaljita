@@ -66,162 +66,171 @@ describe 'simple frequency rules', ->
       limit: 5
     ).toEqual "20060120,20070120,20080120,20090120,20100120,..."
 
-###
+# from section 4.3.10
+describe 'multiple byParts', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=YEARLY;INTERVAL=2;BYMONTH=1;BYDAY=SU",
+      dtStart: time.parseIcal("19970105")
+      limit: 8
+    ).toEqual [
+      "19970105,19970112,19970119,19970126,"
+      "19990103,19990110,19990117,19990124,..."
+    ].join ''
 
-jsunitRegister('testSimpleYearly', function testSimpleYearly() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=YEARLY", time.parseIcal("20060120"), 5,
-      );
-});
+describe 'count with interval', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=DAILY;COUNT=10;INTERVAL=2",
+      dtStart: time.parseIcal("19970105")
+      limit: 11
+    ).toEqual [
+      "19970105,19970107,19970109,19970111,19970113,"
+      "19970115,19970117,19970119,19970121,19970123"
+    ].join ''
 
-// from section 4.3.10
-jsunitRegister('testMultipleByParts', function testMultipleByParts() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=YEARLY;INTERVAL=2;BYMONTH=1;BYDAY=SU",
-      time.parseIcal("19970105"), 8,
-      "19970105,19970112,19970119,19970126," +
-      "19990103,19990110,19990117,19990124,...");
-});
 
-jsunitRegister('testCountWithInterval', function testCountWithInterval() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=DAILY;COUNT=10;INTERVAL=2",
-      time.parseIcal("19970105"), 11,
-      "19970105,19970107,19970109,19970111,19970113," +
-      "19970115,19970117,19970119,19970121,19970123");
-});
+# from section 4.6.5
+describe 'negative offest', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10",
+      dtStart: time.parseIcal("19970105")
+      limit: 5
+    ).toEqual "19971026,19981025,19991031,20001029,20011028,..."
 
-// from section 4.6.5
-jsunitRegister('testNegativeOffsets', function testNegativeOffsets() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=YEARLY;BYDAY=-1SU;BYMONTH=10",
-      time.parseIcal("19970105"), 5,
-      "19971026,19981025,19991031,20001029,20011028,...");
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4",
-      time.parseIcal("19970105"), 5,
-      "19970406,19980405,19990404,20000402,20010401,...");
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4;UNTIL=19980404T150000Z",
-      time.parseIcal("19970105"), 5, "19970406");
-});
+    expect(iterate "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4",
+      dtStart: time.parseIcal("19970105")
+      limit: 5
+    ).toEqual "19970406,19980405,19990404,20000402,20010401,..."
 
-// from section 4.8.5.4
-jsunitRegister('testDailyFor10Occ', function testDailyFor10Occ() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=DAILY;COUNT=10",
-      time.parseIcal("19970902T090000"), 11,
-      "19970902T090000,19970903T090000,19970904T090000,19970905T090000," +
-      "19970906T090000,19970907T090000,19970908T090000,19970909T090000," +
-      "19970910T090000,19970911T090000");
+    expect(iterate "RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=4;UNTIL=19980404T150000Z",
+      dtStart: time.parseIcal("19970105")
+      limit: 5
+    ).toEqual "19970406"
 
-});
 
-jsunitRegister('testDailyUntilDec4', function testDailyUntilDec4() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=DAILY;UNTIL=19971204",
-      time.parseIcal("19971128"), 11,
-      "19971128,19971129,19971130,19971201,19971202,19971203,19971204");
-});
+# from section 4.8.5.4
+describe 'daily for 10Occ', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=DAILY;COUNT=10",
+      dtStart: time.parseIcal("19970902T090000")
+      limit: 11
+    ).toEqual [
+      "19970902T090000,19970903T090000,19970904T090000,19970905T090000,"
+      "19970906T090000,19970907T090000,19970908T090000,19970909T090000,"
+      "19970910T090000,19970911T090000"
+    ].join ''
 
-jsunitRegister('testEveryOtherDayForever', function testEveryOtherDayForever() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=DAILY;INTERVAL=2",
-      time.parseIcal("19971128"), 5,
-      "19971128,19971130,19971202,19971204,19971206,...");
-});
+describe 'daily until Dec 4', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=DAILY;UNTIL=19971204",
+      dtStart: time.parseIcal("19971128")
+      limit: 11
+    ).toEqual "19971128,19971129,19971130,19971201,19971202,19971203,19971204"
 
-jsunitRegister('testEvery10Days5Occ', function testEvery10Days5Occ() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
-      time.parseIcal("19970902"), 5,
-      "19970902,19970912,19970922,19971002,19971012");
-});
+describe 'every other day forever', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=DAILY;INTERVAL=2",
+      dtStart: time.parseIcal("19971128")
+      limit: 5
+    ).toEqual "19971128,19971130,19971202,19971204,19971206,..."
 
-function goldenDateRange(dateStr, opt_interval) {
-  var interval = opt_interval || 1;
 
-  var slash = dateStr.indexOf('/');
+describe 'every 10 days 5Occ', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
+      dtStart: time.parseIcal("19970902")
+      limit: 5
+    ).toEqual "19970902,19970912,19970922,19971002,19971012"
 
-  var d = time.parseIcal(dateStr.substring(0, slash));
-  var end = time.parseIcal(dateStr.substring(slash + 1));
-  var out = [];
-  while (true) {
-    if (d > end) { break; }
-    out.push(time.toIcal(d));
-    d = time.plusDays(d, interval);
-  }
-  return out.join(',');
-}
 
-jsunitRegister(
-    'testEveryDayInJanuaryFor3Years',
-    function testEveryDayInJanuaryFor3Years() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=YEARLY;UNTIL=20000131T090000Z;\n" +
-      " BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA",
-      time.parseIcal("19980101"), 100,
-      goldenDateRange("19980101/19980131") + ","
-      + goldenDateRange("19990101/19990131") + ","
-      + goldenDateRange("20000101/20000131"));
-});
+goldenDateRange = (dateStr, interval=1) ->
+  slash = dateStr.indexOf('/')
+  d = time.parseIcal(dateStr.substring(0, slash))
+  end = time.parseIcal(dateStr.substring(slash + 1))
+  out = []
+  while d <= end
+    out.push(time.toIcal(d))
+    d = time.plusDays(d, interval)
+  return out.join(',')
 
-jsunitRegister('testWeeklyFor10Occ', function testWeeklyFor10Occ() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=WEEKLY;COUNT=10",
-      time.parseIcal("19970902"), 10,
-      "19970902,19970909,19970916,19970923,19970930," +
-      "19971007,19971014,19971021,19971028,19971104");
-});
+describe 'every day in January for 3 years', ->
+  expect(iterate(
+    "RRULE:FREQ=YEARLY;UNTIL=20000131T090000Z;" +
+    "BYMONTH=1;BYDAY=SU,MO,TU,WE,TH,FR,SA",
+    dtStart: time.parseIcal("19980101")
+    limit: 100)
+  ).toEqual [
+    "19980101/19980131"
+    "19990101/19990131"
+    "20000101/20000131"
+  ].map((s) -> goldenDateRange(s)).join ','
 
-jsunitRegister('testWeeklyUntilDec24', function testWeeklyUntilDec24() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=WEEKLY;UNTIL=19971224",
-      time.parseIcal("19970902"), 25,
-      "19970902,19970909,19970916,19970923,19970930," +
-      "19971007,19971014,19971021,19971028,19971104," +
-      "19971111,19971118,19971125,19971202,19971209," +
-      "19971216,19971223");
-});
 
-jsunitRegister(
-    'testEveryOtherWeekForever', function testEveryOtherWeekForever() {
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=WEEKLY;INTERVAL=2;WKST=SU",
-      time.parseIcal("19970902"), 11,
-      "19970902,19970916,19970930,19971014,19971028," +
-      "19971111,19971125,19971209,19971223,19980106," +
-      "19980120,...");
-});
 
-jsunitRegister(
-    'testWeeklyOnTuesdayAndThursdayFor5Weeks',
-    function testWeeklyOnTuesdayAndThursdayFor5Weeks() {
-  // if UNTIL date does not match start date, then until date treated as
-  // occurring on midnight.
-  runRecurrenceIteratorTest(
-      "RRULE:FREQ=WEEKLY;UNTIL=19971007;WKST=SU;BYDAY=TU,TH",
-      time.parseIcal("19970902T090000"), 11,
-      "19970902T090000,19970904T090000,19970909T090000,19970911T090000," +
-      "19970916T090000,19970918T090000,19970923T090000,19970925T090000," +
-      "19970930T090000,19971002T090000");
-  runRecurrenceIteratorTest(
+describe 'weekly for 10cc', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=WEEKLY;COUNT=10",
+      dtStart: time.parseIcal("19970902")
+      limit: 10
+    ).toEqual [
+      "19970902,19970909,19970916,19970923,19970930,"
+      "19971007,19971014,19971021,19971028,19971104"
+    ].join ''
+
+
+describe 'weekly until Dec 24th', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=WEEKLY;UNTIL=19971224",
+      dtStart: time.parseIcal("19970902")
+      limit: 25
+    ).toEqual [
+      "19970902,19970909,19970916,19970923,19970930,"
+      "19971007,19971014,19971021,19971028,19971104,"
+      "19971111,19971118,19971125,19971202,19971209,"
+      "19971216,19971223"
+    ].join ''
+
+describe 'every other week forever', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=WEEKLY;INTERVAL=2;WKST=SU",
+      dtStart: time.parseIcal("19970902")
+      limit: 11
+    ).toEqual [
+      "19970902,19970916,19970930,19971014,19971028,"
+      "19971111,19971125,19971209,19971223,19980106,"
+      "19980120,..."
+    ].join ''
+
+
+describe 'weekly on Tuesday and Thursday for 5 weeks', ->
+  # if UNTIL date does not match start date, then until date treated as
+  # occurring on midnight.
+  expect(iterate "RRULE:FREQ=WEEKLY;UNTIL=19971007;WKST=SU;BYDAY=TU,TH",
+    dtStart: time.parseIcal("19970902T090000")
+    limit: 11
+  ).toEqual [
+    "19970902T090000,19970904T090000,19970909T090000,19970911T090000,"
+    "19970916T090000,19970918T090000,19970923T090000,19970925T090000,"
+    "19970930T090000,19971002T090000"
+  ].join ''
+
+  expect(iterate
       "RRULE:FREQ=WEEKLY;UNTIL=19971007T000000Z;WKST=SU;BYDAY=TU,TH",
       time.parseIcal("19970902T090000"), 11,
       "19970902T090000,19970904T090000,19970909T090000,19970911T090000," +
       "19970916T090000,19970918T090000,19970923T090000,19970925T090000," +
       "19970930T090000,19971002T090000");
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;COUNT=10;WKST=SU;BYDAY=TU,TH",
       time.parseIcal("19970902"), 11,
       "19970902,19970904,19970909,19970911,19970916," +
       "19970918,19970923,19970925,19970930,19971002");
-});
+
+###
 
 jsunitRegister(
     'testEveryOtherWeekOnMWFUntilDec24',
     function testEveryOtherWeekOnMWFUntilDec24() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=19971224T000000Z;WKST=SU;\n" +
       " BYDAY=MO,WE,FR",
       time.parseIcal("19970903T090000"), 25,
@@ -234,7 +243,7 @@ jsunitRegister(
 
   // if the UNTIL date is timed, when the start is not, the time should be
   // ignored, so we get one more instance
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=19971224T000000Z;WKST=SU;\n" +
       " BYDAY=MO,WE,FR",
       time.parseIcal("19970903"), 25,
@@ -261,7 +270,7 @@ jsunitRegister(
   }
 
   // test with an alternate timezone
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;UNTIL=19971224T090000Z;WKST=SU;\n" +
       " BYDAY=MO,WE,FR",
       time.parseIcal("19970903T090000"), 25,
@@ -273,174 +282,174 @@ jsunitRegister(
       "19971208T170000,19971210T170000,19971212T170000,19971222T170000",
       undefined,
       simplePacificTime);
-});
+
 
 jsunitRegister(
     'testEveryOtherWeekOnTuThFor8Occ',
     function testEveryOtherWeekOnTuThFor8Occ() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=8;WKST=SU;BYDAY=TU,TH",
       time.parseIcal("19970902"), 8,
       "19970902,19970904,19970916,19970918,19970930," +
       "19971002,19971014,19971016");
-});
+
 
 jsunitRegister(
     'testMonthlyOnThe1stFridayFor10Occ',
     function testMonthlyOnThe1stFridayFor10Occ() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;COUNT=10;BYDAY=1FR",
       time.parseIcal("19970905"), 10,
       "19970905,19971003,19971107,19971205,19980102," +
       "19980206,19980306,19980403,19980501,19980605");
-});
+
 
 jsunitRegister(
     'testMonthlyOnThe1stFridayUntilDec24',
     function testMonthlyOnThe1stFridayUntilDec24() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;UNTIL=19971224T000000Z;BYDAY=1FR",
       time.parseIcal("19970905"), 4,
       "19970905,19971003,19971107,19971205");
-});
+
 
 jsunitRegister(
     'testEveryOtherMonthOnThe1stAndLastSundayFor10Occ',
     function testEveryOtherMonthOnThe1stAndLastSundayFor10Occ() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;INTERVAL=2;COUNT=10;BYDAY=1SU,-1SU",
       time.parseIcal("19970907"), 10,
       "19970907,19970928,19971102,19971130,19980104," +
       "19980125,19980301,19980329,19980503,19980531");
-});
+
 
 jsunitRegister(
     'testMonthlyOnTheSecondToLastMondayOfTheMonthFor6Months',
     function testMonthlyOnTheSecondToLastMondayOfTheMonthFor6Months() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;COUNT=6;BYDAY=-2MO",
       time.parseIcal("19970922"), 6,
       "19970922,19971020,19971117,19971222,19980119," +
       "19980216");
-});
+
 
 jsunitRegister(
     'testMonthlyOnTheThirdToLastDay',
     function testMonthlyOnTheThirdToLastDay() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYMONTHDAY=-3",
       time.parseIcal("19970928"), 6,
       "19970928,19971029,19971128,19971229,19980129,19980226,...");
-});
+
 
 jsunitRegister(
     'testMonthlyOnThe2ndAnd15thFor10Occ',
     function testMonthlyOnThe2ndAnd15thFor10Occ() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=2,15",
       time.parseIcal("19970902"), 10,
       "19970902,19970915,19971002,19971015,19971102," +
       "19971115,19971202,19971215,19980102,19980115");
-});
+
 
 jsunitRegister(
     'testMonthlyOnTheFirstAndLastFor10Occ',
     function testMonthlyOnTheFirstAndLastFor10Occ() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;COUNT=10;BYMONTHDAY=1,-1",
       time.parseIcal("19970930"), 10,
       "19970930,19971001,19971031,19971101,19971130," +
       "19971201,19971231,19980101,19980131,19980201");
-});
+
 
 jsunitRegister(
     'testEvery18MonthsOnThe10thThru15thFor10Occ',
     function testEvery18MonthsOnThe10thThru15thFor10Occ() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;INTERVAL=18;COUNT=10;BYMONTHDAY=10,11,12,13,14,\n" +
       " 15",
       time.parseIcal("19970910"), 10,
       "19970910,19970911,19970912,19970913,19970914," +
       "19970915,19990310,19990311,19990312,19990313");
-});
+
 
 jsunitRegister(
     'testEveryTuesdayEveryOtherMonth',
     function testEveryTuesdayEveryOtherMonth() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=TU",
       time.parseIcal("19970902"), 18,
       "19970902,19970909,19970916,19970923,19970930," +
       "19971104,19971111,19971118,19971125,19980106," +
       "19980113,19980120,19980127,19980303,19980310," +
       "19980317,19980324,19980331,...");
-});
+
 
 jsunitRegister(
     'testYearlyInJuneAndJulyFor10Occurrences',
     function testYearlyInJuneAndJulyFor10Occurrences() {
   // Note: Since none of the BYDAY, BYMONTHDAY or BYYEARDAY components
   // are specified, the day is gotten from DTSTART
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;COUNT=10;BYMONTH=6,7",
       time.parseIcal("19970610"), 10,
       "19970610,19970710,19980610,19980710,19990610," +
       "19990710,20000610,20000710,20010610,20010710");
-});
+
 
 jsunitRegister(
     'testEveryOtherYearOnJanuaryFebruaryAndMarchFor10Occurrences',
     function testEveryOtherYearOnJanuaryFebruaryAndMarchFor10Occurrences() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=10;BYMONTH=1,2,3",
       time.parseIcal("19970310"), 10,
       "19970310,19990110,19990210,19990310,20010110," +
       "20010210,20010310,20030110,20030210,20030310");
-});
+
 
 jsunitRegister(
     'testEvery3rdYearOnThe1st100thAnd200thDayFor10Occurrences',
     function testEvery3rdYearOnThe1st100thAnd200thDayFor10Occurrences() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=3;COUNT=10;BYYEARDAY=1,100,200",
       time.parseIcal("19970101"), 10,
       "19970101,19970410,19970719,20000101,20000409," +
       "20000718,20030101,20030410,20030719,20060101");
-});
+
 
 jsunitRegister(
     'testEvery20thMondayOfTheYearForever',
     function testEvery20thMondayOfTheYearForever() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYDAY=20MO",
       time.parseIcal("19970519"), 3,
       "19970519,19980518,19990517,...");
-});
+
 
 jsunitRegister(
     'testMondayOfWeekNumber20WhereTheDefaultStartOfTheWeekIsMonday',
     function testMondayOfWeekNumber20WhereTheDefaultStartOfTheWeekIsMonday() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYWEEKNO=20;BYDAY=MO",
       time.parseIcal("19970512"), 3,
       "19970512,19980511,19990517,...");
-});
+
 
 jsunitRegister(
     'testEveryThursdayInMarchForever',
     function testEveryThursdayInMarchForever() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=TH",
       time.parseIcal("19970313"), 11,
       "19970313,19970320,19970327,19980305,19980312," +
       "19980319,19980326,19990304,19990311,19990318," +
       "19990325,...");
-});
+
 
 jsunitRegister(
     'testEveryThursdayButOnlyDuringJuneJulyAndAugustForever',
     function testEveryThursdayButOnlyDuringJuneJulyAndAugustForever() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYDAY=TH;BYMONTH=6,7,8",
       time.parseIcal("19970605"), 39,
       "19970605,19970612,19970619,19970626,19970703," +
@@ -451,159 +460,159 @@ jsunitRegister(
       "19980827,19990603,19990610,19990617,19990624," +
       "19990701,19990708,19990715,19990722,19990729," +
       "19990805,19990812,19990819,19990826,...");
-});
+
 
 jsunitRegister(
     'testEveryFridayThe13thForever',
     function testEveryFridayThe13thForever() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYDAY=FR;BYMONTHDAY=13",
       time.parseIcal("19970902"), 5,
       "19980213,19980313,19981113,19990813,20001013," +
       "...");
-});
+
 
 jsunitRegister(
     'testTheFirstSaturdayThatFollowsTheFirstSundayOfTheMonthForever',
     function testTheFirstSaturdayThatFollowsTheFirstSundayOfTheMonthForever() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYDAY=SA;BYMONTHDAY=7,8,9,10,11,12,13",
       time.parseIcal("19970913"), 10,
       "19970913,19971011,19971108,19971213,19980110," +
       "19980207,19980307,19980411,19980509,19980613," +
       "...");
-});
+
 
 jsunitRegister(
     'testEvery4YearsThe1stTuesAfterAMonInNovForever',
     function testEvery4YearsThe1stTuesAfterAMonInNovForever() {
   // US Presidential Election Day
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=4;BYMONTH=11;BYDAY=TU;BYMONTHDAY=2,3,4,\n" +
       " 5,6,7,8",
       time.parseIcal("19961105"), 3,
       "19961105,20001107,20041102,...");
-});
+
 
 jsunitRegister(
     'testThe3rdInstanceIntoTheMonthOfOneOfTuesWedThursForNext3Months',
     function testThe3rdInstanceIntoTheMonthOfOneOfTuesWedThursForNext3Months() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;COUNT=3;BYDAY=TU,WE,TH;BYSETPOS=3",
       time.parseIcal("19970904"), 3,
       "19970904,19971007,19971106");
-});
+
 
 jsunitRegister(
     'testThe2ndToLastWeekdayOfTheMonth',
     function testThe2ndToLastWeekdayOfTheMonth() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-2",
       time.parseIcal("19970929"), 7,
       "19970929,19971030,19971127,19971230,19980129," +
       "19980226,19980330,...");
-});
+
 
 jsunitRegister(
     'testEvery3HoursFrom900AmTo500PmOnASpecificDay',
     function testEvery3HoursFrom900AmTo500PmOnASpecificDay() {
   if (false) { // TODO(msamuel): implement hourly iteration
-    runRecurrenceIteratorTest(
+    expect(iterate
         "RRULE:FREQ=HOURLY;INTERVAL=3;UNTIL=19970903T010000Z",
         time.parseIcal("19970902"), 7,
         "00000902,19970909,19970900,19970912,19970900," +
         "19970915,19970900");
   }
-});
+
 
 jsunitRegister(
     'testEvery15MinutesFor6Occurrences',
     function testEvery15MinutesFor6Occurrences() {
   if (false) { // TODO(msamuel): implement minutely iteration
-    runRecurrenceIteratorTest(
+    expect(iterate
         "RRULE:FREQ=MINUTELY;INTERVAL=15;COUNT=6",
         time.parseIcal("19970902"), 13,
         "00000902,19970909,19970900,19970909,19970915," +
         "19970909,19970930,19970909,19970945,19970910," +
         "19970900,19970910,19970915");
   }
-});
+
 
 jsunitRegister(
     'testEveryHourAndAHalfFor4Occurrences',
     function testEveryHourAndAHalfFor4Occurrences() {
   if (false) { // TODO(msamuel): implement minutely iteration
-    runRecurrenceIteratorTest(
+    expect(iterate
         "RRULE:FREQ=MINUTELY;INTERVAL=90;COUNT=4",
         time.parseIcal("19970902"), 9,
         "00000902,19970909,19970900,19970910,19970930," +
         "19970912,19970900,19970913,19970930");
   }
-});
+
 
 jsunitRegister(
     'testAnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst',
     function testAnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=MO",
       time.parseIcal("19970805"), 4,
       "19970805,19970810,19970819,19970824");
-});
+
 
 jsunitRegister(
     'testAnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst2',
     function testAnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst2(){
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=SU",
       time.parseIcal("19970805"), 8,
       "19970805,19970817,19970819,19970831");
-});
+
 
 jsunitRegister(
     'testWithByDayAndByMonthDayFilter',
     function testWithByDayAndByMonthDayFilter() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;COUNT=4;BYDAY=TU,SU;" +
       "BYMONTHDAY=13,14,15,16,17,18,19,20",
       time.parseIcal("19970805"), 8,
       "19970817,19970819,19970914,19970916");
-});
+
 
 jsunitRegister(
     'testAnnuallyInAugustOnTuesAndSunBetween13thAnd20th',
     function testAnnuallyInAugustOnTuesAndSunBetween13thAnd20th() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;COUNT=4;BYDAY=TU,SU;" +
       "BYMONTHDAY=13,14,15,16,17,18,19,20;BYMONTH=8",
       time.parseIcal("19970605"), 8,
       "19970817,19970819,19980816,19980818");
-});
+
 
 jsunitRegister(
     'testLastDayOfTheYearIsASundayOrTuesday',
     function testLastDayOfTheYearIsASundayOrTuesday() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;COUNT=4;BYDAY=TU,SU;BYYEARDAY=-1",
       time.parseIcal("19940605"), 8,
       "19951231,19961231,20001231,20021231");
-});
 
-jsunitRegister('testLastWeekdayOfMonth', function testLastWeekdayOfMonth() {
-  runRecurrenceIteratorTest(
+
+describe 'LastWeekdayOfMonth', ->
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYSETPOS=-1;BYDAY=-1MO,-1TU,-1WE,-1TH,-1FR",
       time.parseIcal("19940605"), 8,
       "19940630,19940729,19940831,19940930,"
       + "19941031,19941130,19941230,19950131,...");
-});
+
 
 jsunitRegister(
     'testMonthsThatStartOrEndOnFriday',
     function testMonthsThatStartOrEndOnFriday() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYMONTHDAY=1,-1;BYDAY=FR;COUNT=6",
       time.parseIcal("19940605"), 8,
       "19940701,19940930,19950331,19950630,19950901,19951201");
-});
+
 
 jsunitRegister(
     'testMonthsThatStartOrEndOnFridayOnEvenWeeks',
@@ -624,21 +633,21 @@ jsunitRegister(
     }
   }
 
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;BYMONTHDAY=1,-1;BYDAY=FR;COUNT=3",
       dtStart, 8, golden.join(','));
-});
+
 
 jsunitRegister(
     'testCenturiesThatAreNotLeapYears',
     function testCenturiesThatAreNotLeapYears() {
   // I can't think of a good reason anyone would want to specify both a
   // month day and a year day, so here's a really contrived example
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=100;BYYEARDAY=60;BYMONTHDAY=1",
       time.parseIcal("19000101"), 4,
       "19000301,21000301,22000301,23000301,...");
-});
+
 
 jsunitRegister(
     'testNextCalledWithoutHasNext', function testNextCalledWithoutHasNext() {
@@ -648,9 +657,9 @@ jsunitRegister(
   assertEquals(time.parseIcal("20000101"), riter.next());
   assertEquals(time.parseIcal("20000102"), riter.next());
   assertEquals(time.parseIcal("20000103"), riter.next());
-});
 
-jsunitRegister('testNoInstancesGenerated', function testNoInstancesGenerated() {
+
+describe 'NoInstancesGenerated', ->
   var riter = rrule.createRecurrenceIterator(
       new StubContentLine("RRULE:FREQ=DAILY;UNTIL=19990101"),
       time.parseIcal("20000101"), timezone.utc);
@@ -659,7 +668,7 @@ jsunitRegister('testNoInstancesGenerated', function testNoInstancesGenerated() {
   assertNull(riter.next());
   assertNull(riter.next());
   assertNull(riter.next());
-});
+
 
 jsunitRegister(
     'testNoInstancesGenerated2', function testNoInstancesGenerated2() {
@@ -667,7 +676,7 @@ jsunitRegister(
       new StubContentLine("RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=30"),
       time.parseIcal("20000101"), timezone.utc);
   assertTrue(!riter.hasNext());
-});
+
 
 jsunitRegister(
     'testNoInstancesGenerated3', function testNoInstancesGenerated3() {
@@ -675,21 +684,21 @@ jsunitRegister(
       new StubContentLine("RRULE:FREQ=YEARLY;INTERVAL=4;BYYEARDAY=366"),
       time.parseIcal("20010101"), timezone.utc);
   assertTrue(!riter.hasNext());
-});
 
-jsunitRegister('testLastWeekdayOfMarch', function testLastWeekdayOfMarch() {
-  runRecurrenceIteratorTest(
+
+describe 'LastWeekdayOfMarch', ->
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYMONTH=3;BYDAY=SA,SU;BYSETPOS=-1",
       time.parseIcal("20000101"), 4,
       "20000326,20010331,20020331,20030330,...");
-});
 
-jsunitRegister('testFirstWeekdayOfMarch', function testFirstWeekdayOfMarch() {
-  runRecurrenceIteratorTest(
+
+describe 'FirstWeekdayOfMarch', ->
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYMONTH=3;BYDAY=SA,SU;BYSETPOS=1",
       time.parseIcal("20000101"), 4,
       "20000304,20010303,20020302,20030301,...");
-});
+
 
 
 //     January 1999
@@ -720,53 +729,53 @@ jsunitRegister('testFirstWeekdayOfMarch', function testFirstWeekdayOfMarch() {
 jsunitRegister(
     'testFirstWeekdayOfFirstWeekOfYear',
     function testFirstWeekdayOfFirstWeekOfYear() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYWEEKNO=1;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=1",
       time.parseIcal("19990101"), 4,
       "19990104,20000103,20010101,20020101,...");
-});
+
 
 jsunitRegister(
     'testFirstSundayOfTheYear1', function testFirstSundayOfTheYear1() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYWEEKNO=1;BYDAY=SU",
       time.parseIcal("19990101"), 4,
       "19990110,20000109,20010107,20020106,...");
-});
+
 
 jsunitRegister(
     'testFirstSundayOfTheYear2', function testFirstSundayOfTheYear2() {
   // TODO(msamuel): is this right?
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYDAY=1SU",
       time.parseIcal("19990101"), 4,
       "19990103,20000102,20010107,20020106,...");
-});
+
 
 jsunitRegister(
     'testFirstSundayOfTheYear3', function testFirstSundayOfTheYear3() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYDAY=SU;BYYEARDAY=1,2,3,4,5,6,7,8,9,10,11,12,13"
       + ";BYSETPOS=1",
       time.parseIcal("19990101"), 4,
       "19990103,20000102,20010107,20020106,...");
-});
 
-jsunitRegister('testFirstWeekdayOfYear', function testFirstWeekdayOfYear() {
-  runRecurrenceIteratorTest(
+
+describe 'FirstWeekdayOfYear', ->
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=1",
       time.parseIcal("19990101"), 4,
       "19990101,20000103,20010101,20020101,...");
-});
+
 
 jsunitRegister(
     'testLastWeekdayOfFirstWeekOfYear',
     function testLastWeekdayOfFirstWeekOfYear() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYWEEKNO=1;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1",
       time.parseIcal("19990101"), 4,
       "19990108,20000107,20010105,20020104,...");
-});
+
 
 //     January 1999
 // Mo Tu We Th Fr Sa Su
@@ -776,12 +785,12 @@ jsunitRegister(
 // 18 19 20 21 22 23 24
 // 25 26 27 28 29 30 31
 
-jsunitRegister('testSecondWeekday1', function testSecondWeekday1() {
-  runRecurrenceIteratorTest(
+describe 'SecondWeekday1', ->
+  expect(iterate
       "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=2",
       time.parseIcal("19990101"), 4,
       "19990105,19990112,19990119,19990126,...");
-});
+
 
 //     January 1997
 // Mo Tu We Th Fr Sa Su
@@ -791,50 +800,50 @@ jsunitRegister('testSecondWeekday1', function testSecondWeekday1() {
 // 20 21 22 23 24 25 26
 // 27 28 29 30 31
 
-jsunitRegister('testSecondWeekday2', function testSecondWeekday2() {
-  runRecurrenceIteratorTest(
+describe 'SecondWeekday2', ->
+  expect(iterate
       "RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=2",
       time.parseIcal("19970101"), 4,
       "19970102,19970107,19970114,19970121,...");
-});
+
 
 jsunitRegister(
     'testByYearDayAndByDayFilterInteraction',
     function testByYearDayAndByDayFilterInteraction() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYYEARDAY=15;BYDAY=3MO",
       time.parseIcal("19990101"), 4,
       "20010115,20070115,20180115,20240115,...");
-});
+
 
 jsunitRegister(
     'testByDayWithNegWeekNoAsFilter',
     function testByDayWithNegWeekNoAsFilter() {
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;BYMONTHDAY=26;BYDAY=-1FR",
       time.parseIcal("19990101"), 4,
       "19990226,19990326,19991126,20000526,...");
-});
 
-jsunitRegister('testLastWeekOfTheYear', function testLastWeekOfTheYear() {
-  runRecurrenceIteratorTest(
+
+describe 'LastWeekOfTheYear', ->
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYWEEKNO=-1",
       time.parseIcal("19990101"), 6,
       "19991227,19991228,19991229,19991230,19991231,20001225,...");
-});
 
-jsunitRegister('testUserSubmittedTest1', function testUserSubmittedTest1() {
-  runRecurrenceIteratorTest(
+
+describe 'UserSubmittedTest1', ->
+  expect(iterate
       "RRULE:FREQ=WEEKLY;INTERVAL=2;WKST=WE;BYDAY=SU,TU,TH,SA"
       + ";UNTIL=20000215T113000Z",
       time.parseIcal("20000127T033000"), 20,
       "20000127T033000,20000129T033000,20000130T033000,20000201T033000,"
       + "20000210T033000,20000212T033000,20000213T033000,20000215T033000");
-});
 
-jsunitRegister('testAdvanceTo', function testAdvanceTo() {
+
+describe 'AdvanceTo', ->
   // a bunch of tests grabbed from above with an advance-to date tacked on
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=TH",
       time.parseIcal("19970313"), 11,
       /*"19970313,19970320,19970327,"##"19980305,19980312," +
@@ -842,13 +851,13 @@ jsunitRegister('testAdvanceTo', function testAdvanceTo() {
       "19990325,20000302,20000309,20000316,...",
       time.parseIcal("19970601"));
 
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYDAY=20MO",
       time.parseIcal("19970519"), 3,
       /*"19970519,"##"19980518,19990517,20000515,...",
       time.parseIcal("19980515"));
 
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=3;UNTIL=20090101;BYYEARDAY=1,100,200",
       time.parseIcal("19970101"), 10,
       /*"19970101,19970410,19970719,20000101,"##"20000409," +
@@ -857,21 +866,21 @@ jsunitRegister('testAdvanceTo', function testAdvanceTo() {
       time.parseIcal("20000228"));
 
   // make sure that count preserved
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=3;COUNT=10;BYYEARDAY=1,100,200",
       time.parseIcal("19970101"), 10,
       /*"19970101,19970410,19970719,20000101,"##"20000409," +
       "20000718,20030101,20030410,20030719,20060101",
       time.parseIcal("20000228"));
 
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=2;COUNT=10;BYMONTH=1,2,3",
       time.parseIcal("19970310"), 10,
       /*"19970310,"##"19990110,19990210,19990310,20010110," +
       "20010210,20010310,20030110,20030210,20030310",
       time.parseIcal("19980401"));
 
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=WEEKLY;UNTIL=19971224",
       time.parseIcal("19970902"), 25,
       /*"19970902,19970909,19970916,19970923,"##"19970930," +
@@ -880,7 +889,7 @@ jsunitRegister('testAdvanceTo', function testAdvanceTo() {
       "19971216,19971223",
       time.parseIcal("19970930"));
 
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;INTERVAL=18;BYMONTHDAY=10,11,12,13,14,\n" +
       " 15",
       time.parseIcal("19970910"), 5,
@@ -889,7 +898,7 @@ jsunitRegister('testAdvanceTo', function testAdvanceTo() {
       time.parseIcal("19990101"));
 
   // advancing into the past
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=MONTHLY;INTERVAL=18;BYMONTHDAY=10,11,12,13,14,\n" +
       " 15",
       time.parseIcal("19970910"), 11,
@@ -898,7 +907,7 @@ jsunitRegister('testAdvanceTo', function testAdvanceTo() {
       time.parseIcal("19970901"));
 
   // skips first instance
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=100;BYMONTH=2;BYMONTHDAY=29",
       time.parseIcal("19000101"), 4,
       // would return 2000
@@ -906,40 +915,40 @@ jsunitRegister('testAdvanceTo', function testAdvanceTo() {
       time.parseIcal("20040101"));
 
   // filter hits until date before first instnace
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;INTERVAL=100;BYMONTH=2;BYMONTHDAY=29;UNTIL=21000101",
       time.parseIcal("19000101"), 5,
       "",
       time.parseIcal("20040101"));
 
   // advancing something that returns no instances
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=30",
       time.parseIcal("20000101"), 10,
       "",
       time.parseIcal("19970901"));
 
   // advancing something that returns no instances and has a BYSETPOS rule
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=30,31;BYSETPOS=1",
       time.parseIcal("20000101"), 10,
       "",
       time.parseIcal("19970901"));
 
   // advancing way past year generator timeout
-  runRecurrenceIteratorTest(
+  expect(iterate
       "RRULE:FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=28",
       time.parseIcal("20000101"), 10,
       "",
       time.parseIcal("25000101"));
 
   // TODO(msamuel): check advancement of more examples
-});
+
 
 
 ## a testcase that yielded dupes due to bysetPos evilness ##
-jsunitRegister('testCaseThatYieldedDupes', function testCaseThatYieldedDupes() {
-  runRecurrenceIteratorTest(
+describe 'CaseThatYieldedDupes', ->
+  expect(iterate
       "RRULE:FREQ=WEEKLY;WKST=SU;INTERVAL=1;BYMONTH=9,1,12,8"
       + ";BYMONTHDAY=-9,-29,24;BYSETPOS=-1,-4,10,-6,-1,-10,-10,-9,-8",
       time.parseIcal("20060528"), 200,
@@ -972,5 +981,5 @@ jsunitRegister('testCaseThatYieldedDupes', function testCaseThatYieldedDupes() {
       + "21120124,21130924,21131203,21131224,21140902,21141223,21150922,"
       + "21160823,21170103,21170124,21180123,21190924,21191203,21191224,"
       + "21200922,21210803,21210824,21220823,...");
-});
+
 ###

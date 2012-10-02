@@ -280,14 +280,19 @@ current year, or weeks in the current month?
 @param {number} dtStart a date value
 ###
 generators.byDayGenerator = (days, weeksInYear, dtStart) ->
-  
+  year = undefined
+  month = undefined
+
   ###
   list of generated dates for the current month
   ###
-  
+  dates = undefined
+
   ###
   index into dates of next date to return
   ###
+  i = undefined
+
   reset = ->
     year = time.year(dtStart)
     month = time.month(dtStart)
@@ -338,6 +343,7 @@ generators.byDayGenerator = (days, weeksInYear, dtStart) ->
     for k of udates
       dates.push Number(k)
     dates.sort time_util.numericComparator
+
   generate = (builder) ->
     byear = time.year(builder[0])
     bmonth = time.month(builder[0])
@@ -351,10 +357,7 @@ generators.byDayGenerator = (days, weeksInYear, dtStart) ->
     return false  if i >= dates.length
     builder[0] = time.withDay(builder[0], dates[i++])
     true
-  year = undefined
-  month = undefined
-  dates = undefined
-  i = undefined
+
   return {generate, reset}
 
 
