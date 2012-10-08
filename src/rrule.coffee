@@ -5,6 +5,7 @@ conditions = require './conditions'
 predicates = require './predicates'
 filters = require './filters'
 WeekDay = require './weekday'
+Frequency = require './frequency'
 
 
 ###
@@ -51,17 +52,7 @@ advanceTo: function (dateValueUtc) { ... }
 
 module.exports = rrule = {}
   
-###
-@enum {number}
-###
-Frequency =
-  SECONDLY: 0
-  MINUTELY: 1
-  HOURLY: 2
-  DAILY: 3
-  WEEKLY: 4
-  MONTHLY: 5
-  YEARLY: 6
+
 
 ###
 A weekday & number pattern.
@@ -510,5 +501,4 @@ rruleIteratorImpl = (dtStart, timezone, condition, filter, instanceGenerator, ye
   }
 
 rrule.createRecurrenceIterator = createRecurrenceIterator
-rrule.Frequency = Frequency
 

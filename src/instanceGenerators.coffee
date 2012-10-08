@@ -1,5 +1,6 @@
 time = require './time'
 time_util = require './time_util'
+Frequency = require './frequency'
 
 ###
 @fileoverview
@@ -123,13 +124,13 @@ instanceGenerators.bySetPosInstanceGenerator = (setPos, freq, wkst, filter, year
         # the last period.
         switch freq
 
-          when rrule.Frequence.YEARLY, rrule.Frequency.MONTHLY
-            if freq is rrule.Frequency.YEARLY
+          when Frequency.YEARLY, Frequency.MONTHLY
+            if freq is Frequency.YEARLY
               return false  unless yearGenerator.generate(builder)
             until monthGenerator.generate(builder)
               return false  unless yearGenerator.generate(builder)
 
-          when rrule.Frequency.WEEKLY
+          when Frequency.WEEKLY
             # Consume because just incrementing date doesn't do anything.
             nextWeek = time_util.nextWeekStart(builder[0], wkst)
             loop
@@ -171,16 +172,16 @@ instanceGenerators.bySetPosInstanceGenerator = (setPos, freq, wkst, filter, year
           contained = true
         else
           switch freq
-            when rrule.Frequency.WEEKLY
+            when Frequency.WEEKLY
               nb = time.daysBetween(d, d0)
               
               # Two dates (d, d0) are in the same week
               # if there isn't a whole week in between them and the
               # later day is later in the week than the earlier day.
               contained = (nb < 7 and ((7 + time.weekDayOf(d) - wkst) % 7) > ((7 + time.weekDayOf(d0) - wkst) % 7))
-            when rrule.Frequency.MONTHLY
+            when Frequency.MONTHLY
               contained = time.sameMonth(d0, d)
-            when rrule.Frequency.YEARLY
+            when Frequency.YEARLY
               contained = time.year(d0) is time.year(d)
             else
         if contained

@@ -133,7 +133,6 @@ describe 'every other day forever', ->
       limit: 5
     ).toEqual "19971128,19971130,19971202,19971204,19971206,..."
 
-
 describe 'every 10 days 5 times', ->
   it 'works', ->
     expect(iterate "RRULE:FREQ=DAILY;INTERVAL=10;COUNT=5",
@@ -527,82 +526,80 @@ describe 'every 3 hours from 9:00am to 5:00pm on a specific day', ->
         "19970915,19970900"
       ].join ''
 
-###
+describe 'every 15 minutes 6 times', ->
+  it 'is not implemented', ->
+    if no # TODO: implement minutely iteration
+      expect(iterate "RRULE:FREQ=MINUTELY;INTERVAL=15;COUNT=6",
+          dtStart: time.parseical("19970902")
+          limit: 13
+      ).toEqual [
+        "00000902,19970909,19970900,19970909,19970915,"
+        "19970909,19970930,19970909,19970945,19970910,"
+        "19970900,19970910,19970915"
+      ].join ''
 
-describe 'Every15MinutesFor6Occurrences',
-  if (false) { // TODO(msamuel): implement minutely iteration
-    expect(iterate
-        "RRULE:FREQ=MINUTELY;INTERVAL=15;COUNT=6",
-        time.parseIcal("19970902"), 13,
-        "00000902,19970909,19970900,19970909,19970915," +
-        "19970909,19970930,19970909,19970945,19970910," +
-        "19970900,19970910,19970915");
-  }
+describe 'every hour and a half 4 times', ->
+  it 'is not implemented', ->
+    if no # TODO implement minutely iteration
+      expect(iterate "RRULE:FREQ=MINUTELY;INTERVAL=90;COUNT=4",
+        dtStart: time.parseIcal("19970902")
+        limit: 9
+      ).toEqual [
+        "00000902,19970909,19970900,19970910,19970930,"
+        "19970912,19970900,19970913,19970930"
+      ]
 
+describe 'with different weekstarts', ->
+  it 'iterates different days', ->
+    expect(iterate "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=MO",
+      dtStart: time.parseIcal("19970805")
+      limit: 4
+    ).toEqual "19970805,19970810,19970819,19970824"
 
-describe 'EveryHourAndAHalfFor4Occurrences',
-  if (false) { // TODO(msamuel): implement minutely iteration
-    expect(iterate
-        "RRULE:FREQ=MINUTELY;INTERVAL=90;COUNT=4",
-        time.parseIcal("19970902"), 9,
-        "00000902,19970909,19970900,19970910,19970930," +
-        "19970912,19970900,19970913,19970930");
-  }
+    expect(iterate "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=SU",
+      dtStart: time.parseIcal("19970805")
+      limit: 4
+    ).toEqual "19970805,19970817,19970819,19970831"
 
+describe 'byDay and byMonthDay', ->
+  it 'work together', ->
+    expect(iterate "RRULE:FREQ=WEEKLY;COUNT=4;BYDAY=TU,SU;BYMONTHDAY=13,14,15,16,17,18,19,20",
+      dtStart: time.parseIcal("19970805")
+      limit: 8
+    ).toEqual "19970817,19970819,19970914,19970916"
 
-describe 'AnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst',
-  expect(iterate
-      "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=MO",
-      time.parseIcal("19970805"), 4,
-      "19970805,19970810,19970819,19970824");
+describe 'annually in August on Tues and Sun between the 13th and 20th', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=YEARLY;COUNT=4;BYDAY=TU,SU;BYMONTHDAY=13,14,15,16,17,18,19,20;BYMONTH=8",
+      dtStart: time.parseIcal("19970605")
+      limit: 8
+    ).toEqual "19970817,19970819,19980816,19980818"
 
+describe 'last day of the year is a Sunday or Tuesday', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=YEARLY;COUNT=4;BYDAY=TU,SU;BYYEARDAY=-1",
+      dtStart: time.parseIcal("19940605")
+      limit: 8
+    ).toEqual "19951231,19961231,20001231,20021231"
 
-describe 'AnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst2',
-    function testAnExampleWhereTheDaysGeneratedMakesADifferenceBecauseOfWkst2(){
-  expect(iterate
-      "RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=4;BYDAY=TU,SU;WKST=SU",
-      time.parseIcal("19970805"), 8,
-      "19970805,19970817,19970819,19970831");
-
-
-describe 'WithByDayAndByMonthDayFilter',
-  expect(iterate
-      "RRULE:FREQ=WEEKLY;COUNT=4;BYDAY=TU,SU;" +
-      "BYMONTHDAY=13,14,15,16,17,18,19,20",
-      time.parseIcal("19970805"), 8,
-      "19970817,19970819,19970914,19970916");
-
-
-describe 'AnnuallyInAugustOnTuesAndSunBetween13thAnd20th',
-  expect(iterate
-      "RRULE:FREQ=YEARLY;COUNT=4;BYDAY=TU,SU;" +
-      "BYMONTHDAY=13,14,15,16,17,18,19,20;BYMONTH=8",
-      time.parseIcal("19970605"), 8,
-      "19970817,19970819,19980816,19980818");
-
-
-describe 'LastDayOfTheYearIsASundayOrTuesday',
-  expect(iterate
-      "RRULE:FREQ=YEARLY;COUNT=4;BYDAY=TU,SU;BYYEARDAY=-1",
-      time.parseIcal("19940605"), 8,
-      "19951231,19961231,20001231,20021231");
-
-
-describe 'LastWeekdayOfMonth', ->
-  expect(iterate
-      "RRULE:FREQ=MONTHLY;BYSETPOS=-1;BYDAY=-1MO,-1TU,-1WE,-1TH,-1FR",
-      time.parseIcal("19940605"), 8,
+describe 'last weekday of month', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=MONTHLY;BYSETPOS=-1;BYDAY=-1MO,-1TU,-1WE,-1TH,-1FR",
+      dtStart: time.parseIcal("19940605")
+      limit: 8
+    ).toEqual [
       "19940630,19940729,19940831,19940930,"
-      + "19941031,19941130,19941230,19950131,...");
+      "19941031,19941130,19941230,19950131,..."
+    ].join ''
 
+describe 'months that start or end on Friday', ->
+  it 'works', ->
+    expect(iterate "RRULE:FREQ=MONTHLY;BYMONTHDAY=1,-1;BYDAY=FR;COUNT=6",
+      dtStart: time.parseIcal("19940605")
+      limit: 8
+    ).toEqual "19940701,19940930,19950331,19950630,19950901,19951201"
 
-describe 'MonthsThatStartOrEndOnFriday',
-  expect(iterate
-      "RRULE:FREQ=MONTHLY;BYMONTHDAY=1,-1;BYDAY=FR;COUNT=6",
-      time.parseIcal("19940605"), 8,
-      "19940701,19940930,19950331,19950630,19950901,19951201");
-
-
+###
 describe 'MonthsThatStartOrEndOnFridayOnEvenWeeks',
   // figure out which of the answers from the above fall on even weeks
   var dtStart = time.parseIcal("19940603");
